@@ -22,6 +22,6 @@ Error::~Error() throw()
 
 const char* Error::what() const throw()
 {
-	std::cout << std::setw(15) << "[Error] " << "delete!!" << std::endl;
+	std::cout << std::setw(15) << "\033[95m" << "[Error] " << "\033[38;5;160m" << this->_message << std::endl;
 	return ("1");
 }

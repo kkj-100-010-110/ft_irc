@@ -7,33 +7,46 @@
 #include <sys/poll.h>
 #include "Socket.hpp"
 
+#include "Color.hpp"
+
 Socket::Socket()
 {
-	std::cout << std::setw(15) << "[Socket] " << "create!!" << std::endl;
+	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Socket] " << NO_COLOR
+		<< FG_CYAN << " create!!" << std::endl;
+}
+
+Socket::Socket(int fd)
+	:_socket_fd(fd)
+{
+	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Socket] " 
+		<< FG_LGREEN << CL_UDLINE << "<< fd : " << this->_socket_fd << " >>" << NO_COLOR
+		<< FG_CYAN << " create!!" << NO_COLOR << std::endl;
 }
 
 
 Socket::Socket(const char *IP, const char *port, struct addrinfo hints)
 	: _IP(IP), _port(port), _hints(hints)
 {
-	if (!IP)
+	
+	if (!IP || !std::string(IP).compare("127.0.0.1"))
 		this->ft_create_socket();
 	else
 	{
-			this->ft_ip_check(); // throw check error
-			this->ft_find_socker(); // throw NULL prompt
+		this->ft_ip_check(); // throw check error
+		this->ft_find_socker(); // throw NULL prompt
 	}
-}
-Socket::Socket(const Socket& ref)
-{
-	*this=ref;
-	std::cout << std::setw(15) << "[Socket] " << "copy!!" << std::endl;
+	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Socket] " 
+		<< FG_LGREEN << CL_UDLINE << "<< fd : " << this->_socket_fd << " >>" << NO_COLOR
+		<< FG_CYAN << " create!!" << NO_COLOR << std::endl;
 }
 
 Socket::~Socket()
 {
 	close(this->_socket_fd);
-	std::cout << std::setw(15) << "[Socket] " << "delete!!" << std::endl;
+	delete this->_hints.ai_addr;
+	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Socket] " 
+		<< FG_LGREEN << CL_UDLINE << "<< fd : " << this->_socket_fd << " >>" << NO_COLOR
+		<< FG_LRED << " delete!!" << NO_COLOR << std::endl;
 }
 
 Socket&	Socket::operator=(const Socket& ref)
@@ -117,9 +130,10 @@ void	Socket::ft_listen(int backlog)
 
 Socket	*Socket::ft_accept()
 {
-	Socket *client = new Socket();
-	struct sockaddr_in   client_addr;
-	struct pollfd pfd;
+	Socket 					*client = NULL;
+	struct sockaddr_in		client_addr;
+	struct pollfd			pfd;
+	int						socket_fd;
 
 	pfd.fd = this->_socket_fd;
 	pfd.events = POLLIN;
@@ -128,8 +142,9 @@ Socket	*Socket::ft_accept()
 
 	if (poll(&pfd, 1, 100) > 0)
 	{
-		if ((client->_socket_fd = accept(this->_socket_fd, (struct sockaddr*)&client->_ip4addr, &client_addr_size)) == -1)
+		if ((socket_fd = accept(this->_socket_fd, (struct sockaddr*)&client->_ip4addr, &client_addr_size)) == -1)
 			throw Error("accept fd == -1");
+		client = new Socket(socket_fd);
 		return client;
 	}
 	return (NULL);

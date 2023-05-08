@@ -6,12 +6,12 @@
 #include <exception>
 
 #ifndef BACKLOG
-# define BACKLOG 50
+# define BACKLOG 10
 #endif
 
-#include "tool/Error.hpp"
+#include "Error.hpp"
 
-class Socket : public Error
+class Socket
 {
 private:
 	/* data */
@@ -27,8 +27,8 @@ private:
 	void	ft_create_socket();
 public:
 	Socket();
+	Socket(int fd);
 	Socket(const char *IP, const char *port, struct addrinfo hints);
-	Socket(const Socket& ref);
 	~Socket();
 
 	Socket&	operator=(const Socket& ref);

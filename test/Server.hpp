@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Socket.hpp"
+#include "Error.hpp"
 
 class Server
 {
@@ -23,9 +24,8 @@ public:
 	Server(std::string port, std::string password);
 	~Server();
 
-	void ft_server_on();
-
-	Server&	operator=(const Server& ref);
+	void	ft_server_on();
+	void	ft_server_check_socket_fd();
 };
 
 #endif
