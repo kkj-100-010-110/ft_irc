@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
+#include <queue>
 
 #include "Socket.hpp"
 #include "Error.hpp"
@@ -17,7 +17,7 @@ private:
 	std::string _password;
 
 	Socket	*_server;
-	std::vector<Socket *> _socket;
+	std::queue<Socket *> _socket;
 
 public:
 	Server();
@@ -26,6 +26,7 @@ public:
 
 	void	ft_server_on();
 	void	ft_server_check_socket_fd();
+	void	ft_server_input();
 };
 
 #endif

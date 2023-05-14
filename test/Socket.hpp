@@ -21,6 +21,7 @@ private:
 	const char		*_IP;
 	const char		*_port;
 	struct addrinfo	_hints;
+	int				_level;
 
 	void	ft_ip_check();
 	void	ft_find_socker();
@@ -35,6 +36,9 @@ public:
 
 	
 	int		ft_get_socket_fd();
+	int		ft_get_socket_level();
+	int		ft_set_socket_level(int level);
+	int		ft_increase_level();
 	Socket	*ft_accept();
 	void	ft_listen(int backlog);
 };

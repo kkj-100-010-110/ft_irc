@@ -16,7 +16,7 @@ Socket::Socket()
 }
 
 Socket::Socket(int fd)
-	:_socket_fd(fd)
+	:_socket_fd(fd), _level(0)
 {
 	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Socket] " 
 		<< FG_LGREEN << CL_UDLINE << "<< fd : " << this->_socket_fd << " >>" << NO_COLOR
@@ -25,9 +25,8 @@ Socket::Socket(int fd)
 
 
 Socket::Socket(const char *IP, const char *port, struct addrinfo hints)
-	: _IP(IP), _port(port), _hints(hints)
+	: _IP(IP), _port(port), _hints(hints), _level(0)
 {
-	
 	if (!IP || !std::string(IP).compare("127.0.0.1"))
 		this->ft_create_socket();
 	else
@@ -63,6 +62,25 @@ Socket&	Socket::operator=(const Socket& ref)
 int	Socket::ft_get_socket_fd()
 {
 	return (this->_socket_fd);
+}
+
+int	Socket::ft_get_socket_level()
+{
+	return (this->_level);
+}
+
+int	Socket::ft_set_socket_level(int level)
+{
+	int	diff;
+
+	diff = level - this->_level;
+	this->_level = level;
+	return (diff);
+}
+
+int	Socket::ft_increase_level()
+{
+	return (++this->_level);
 }
 
 
@@ -145,6 +163,7 @@ Socket	*Socket::ft_accept()
 		if ((socket_fd = accept(this->_socket_fd, (struct sockaddr*)&client->_ip4addr, &client_addr_size)) == -1)
 			throw Error("accept fd == -1");
 		client = new Socket(socket_fd);
+		client->_level++;
 		return client;
 	}
 	return (NULL);
