@@ -71,7 +71,7 @@ void Server::ft_server_on()
 	Socket	*accept_socket;
 	this->_server->ft_listen(20); // throw listen error
 
-	while (this->_socket.size() < 3)
+	while (this->_socket.size() < 5)
 	{
 		accept_socket = this->_server->ft_accept();
 		if (accept_socket)
@@ -134,11 +134,24 @@ void	Server::ft_server_check_socket_fd()
 			}
 			else
 			{
-				if (buf[len - 1] == '\n')
-					buf[len - 1] = '\0';
 				std::cout 
 				<< FG_LGREEN << "[" << socket_front->ft_get_socket_fd() << "]"
-				<< NO_COLOR << " : " << buf << std::endl;
+				<< NO_COLOR << " : " << buf;
+
+				int				socket_send_loop;
+
+				socket_send_loop = this->_socket.size() - 1;
+				/**
+				 *  buff 에 발신자 아이디 추가 하기
+				 * */
+				while(socket_send_loop--)
+				{
+					this->_socket.pop();
+					this->_socket.push(socket_front);
+					socket_front = this->_socket.front();
+					if (socket_front->ft_get_socket_level() > 0)
+						send(socket_front->ft_get_socket_fd(), &buf, len + 1, 0);
+				}
 			}
 		}
 		this->_socket.pop();
