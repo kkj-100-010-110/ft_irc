@@ -77,14 +77,14 @@ void Server::ft_server_on()
 		if (accept_socket)
 			this->_socket.push(accept_socket);
 		this->ft_server_check_socket_fd();
-		this->ft_server_input();
+		// this->ft_server_input();
+		sleep(1);
 	}
 }
 
 void	Server::ft_server_check_socket_fd()
 {
-	struct pollfd	pfd;
-	struct stat		sb;
+	int			revents;
 	char			buf[4096 + 1];
 	int				socket_size;
 	Socket			*socket_front;
@@ -94,14 +94,10 @@ void	Server::ft_server_check_socket_fd()
 	{
 		// 끊어 졋는지 확인 코드가 필요 지금 꺼져있는 fd close 필요
 		socket_front = this->_socket.front();
-		pfd.fd = socket_front->ft_get_socket_fd();
-		pfd.events = POLLSTANDARD;
-		fstat(pfd.fd, &sb);
-		if (sb.st_size > 0)
+		revents = socket_front->ft_poll();
+		if (revents & POLLIN )
 		{
-			if (poll(&pfd, 1, -1) == -1 && pfd.revents & POLLERR)
-				throw Error("poll POLLERR");
-			ssize_t len = recv(pfd.fd, &buf, 4096, 0);
+			ssize_t len = recv(socket_front->ft_get_socket_fd(), &buf, 4096, 0);
 			if (len < 0)
 				throw Error("recv() failed"); 
 			if (len == 0)

@@ -34,6 +34,7 @@ public:
 
 	Socket&	operator=(const Socket& ref);
 
+	int		ft_poll();
 	
 	int		ft_get_socket_fd();
 	int		ft_get_socket_level();
