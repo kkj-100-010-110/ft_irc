@@ -3,8 +3,8 @@
 #include <arpa/inet.h> // inet_addr
 #include <unistd.h>
 #include <sys/socket.h>
-
 #include <sys/poll.h>
+
 #include "Socket.hpp"
 
 #include "Color.hpp"
@@ -42,7 +42,6 @@ Socket::Socket(const char *IP, const char *port, struct addrinfo hints)
 Socket::~Socket()
 {
 	close(this->_socket_fd);
-	delete this->_hints.ai_addr;
 	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Socket] " 
 		<< FG_LGREEN << CL_UDLINE << "<< fd : " << this->_socket_fd << " >>" << NO_COLOR
 		<< FG_LRED << " delete!!" << NO_COLOR << std::endl;
@@ -78,12 +77,10 @@ int	Socket::ft_set_socket_level(int level)
 	return (diff);
 }
 
-int	Socket::ft_increase_level()
-{
-	return (++this->_level);
-}
 
-
+/**
+ * socket function for client 
+*/
 void	Socket::ft_ip_check()
 {
 	int IP_result = inet_addr(this->_IP);
@@ -123,6 +120,11 @@ void	Socket::ft_find_socker()
 	freeaddrinfo(info);
 }
 
+
+
+/**
+ * socket function for server 
+*/
 void	Socket::ft_create_socket()
 {
 	memset(&this->_ip4addr, 0, sizeof(struct sockaddr_in));
@@ -149,22 +151,74 @@ void	Socket::ft_listen(int backlog)
 Socket	*Socket::ft_accept()
 {
 	Socket 					*client = NULL;
+	struct sockaddr			ip4addr;
 	struct sockaddr_in		client_addr;
-	struct pollfd			pfd;
 	int						socket_fd;
+	socklen_t  				client_addr_size = sizeof(struct sockaddr_in);
 
-	pfd.fd = this->_socket_fd;
-	pfd.events = POLLIN;
-
-	socklen_t   client_addr_size = sizeof(struct sockaddr_in);
-
-	if (poll(&pfd, 1, 100) > 0)
+	if (this->ft_poll() > 0)
 	{
-		if ((socket_fd = accept(this->_socket_fd, (struct sockaddr*)&client->_ip4addr, &client_addr_size)) == -1)
+		if ((socket_fd = accept(this->_socket_fd, (sockaddr *)&ip4addr, &client_addr_size)) == -1)
 			throw Error("accept fd == -1");
 		client = new Socket(socket_fd);
+		// client->_ip4addr = ip4addr;
 		client->_level++;
+		client->ft_guide_send();
 		return client;
 	}
 	return (NULL);
+}
+
+
+
+
+/**
+ * for socket utility
+*/
+
+int	Socket::ft_increase_level()
+{
+	return (++this->_level);
+}
+
+int	Socket::ft_poll()
+{
+	struct pollfd	pfd;
+
+	pfd.fd = this->_socket_fd;
+	pfd.events = POLLSTANDARD;
+	if (poll(&pfd, 1, 0) == -1 && pfd.revents & POLLERR)
+		throw Error("poll POLLERR");
+	if (pfd.revents)
+	{
+		std::cout << "fd : " << pfd.fd << std::endl;
+		std::cout << "pfd.revents : " << pfd.revents << std::endl;
+		std::cout << "pfd.events : " << pfd.events << std::endl;
+	}
+	return (pfd.revents);
+}
+
+void	Socket::ft_guide_send()
+{
+	switch (this->_level)
+	{
+	case 1:
+		/* code */
+		send(this->_socket_fd, "password 입력 : \n\0", 21, 0);
+		break;
+	case 2:
+		/* code */
+		send(this->_socket_fd, "user_name 입력 : \n\0", 22, 0);
+		break;
+	case 3:
+		/* code */
+		send(this->_socket_fd, "nick_name 입력 : \n\0", 22, 0);
+		break;
+	case 4:
+		/* code */
+		send(this->_socket_fd, "channel에 접속하였습니다 : \n\0", 38, 0);
+		break;
+	default:
+		break;
+	}
 }

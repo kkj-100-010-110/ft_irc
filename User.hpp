@@ -20,13 +20,6 @@ private:
 	int			_auth;
 
 public:
-	ft_ads()
-	{
-		OWNER;
-		OPERATOR;
-		USER;
-		END;
-	}
 };
 
 #endif

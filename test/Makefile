@@ -10,9 +10,7 @@ DFLAGS =
 
 CXXFLAGS = 
 
-SRC =	Server.cpp	\
-		Socket.cpp	\
-		Error.cpp
+SRC =	$(wildcard *.cpp)
 
 
 OBJS = $(SRC:.cpp=.o)

@@ -7,8 +7,9 @@
 
 #include "Socket.hpp"
 #include "Error.hpp"
+#include "UserControl.hpp"
 
-class Server
+class Server: public UserControl
 {
 private:
 	/* data */
@@ -27,6 +28,14 @@ public:
 	void	ft_server_on();
 	void	ft_server_check_socket_fd();
 	void	ft_server_input();
+
+
+
+
+	void	ft_pollin(Socket *socket_front);
+	bool	ft_password_check(Socket *socket_front, int check);
+	bool	ft_user_all_add(Socket *socket_front, std::string user_name);
+	bool	ft_user_set_nick_name(Socket *socket_front, std::string user_name);
 };
 
 #endif

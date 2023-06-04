@@ -77,15 +77,14 @@ void Server::ft_server_on()
 		if (accept_socket)
 			this->_socket.push(accept_socket);
 		this->ft_server_check_socket_fd();
-		this->ft_server_input();
+		// this->ft_server_input();
+		sleep(1);
 	}
 }
 
 void	Server::ft_server_check_socket_fd()
 {
-	struct pollfd	pfd;
-	struct stat		sb;
-	char			buf[4096 + 1];
+	int				revents;
 	int				socket_size;
 	Socket			*socket_front;
 
@@ -94,70 +93,124 @@ void	Server::ft_server_check_socket_fd()
 	{
 		// 끊어 졋는지 확인 코드가 필요 지금 꺼져있는 fd close 필요
 		socket_front = this->_socket.front();
-		pfd.fd = socket_front->ft_get_socket_fd();
-		pfd.events = POLLSTANDARD;
-		fstat(pfd.fd, &sb);
-		if (sb.st_size > 0)
+		revents = socket_front->ft_poll();
+		if (revents & POLLERR)
 		{
-			if (poll(&pfd, 1, -1) == -1 && pfd.revents & POLLERR)
-				throw Error("poll POLLERR");
-			ssize_t len = recv(pfd.fd, &buf, 4096, 0);
-			if (len < 0)
-				throw Error("recv() failed"); 
-			if (len == 0)
-				throw Error("Connection closed");
-			buf[len] = '\0';
-			
-			if (len == 1 && buf[0] == '\n')
-			{
-				delete socket_front;
-				this->_socket.pop();
-				continue ;
-			}
-			else if (socket_front->ft_get_socket_level() == 1) // 페스워드 체킹
-			{
-				if (this->_password.compare(buf))
-				{
-					std::cout 
-					<< FG_RED << std::left << std::setw(15) <<  "[ ERROR ]" << "not password matching!! \n"
-					<< FG_LGREEN << "[" << socket_front->ft_get_socket_fd() << "] " << "len : " << len << "\n"
-					<< FG_LYELLOW <<  "diff " << this->_password.compare(buf) << " => '" << buf << "'" << NO_COLOR 
-					<< std::endl;
-				}
-				else
-				{
-					std::cout 
-					<< FG_LGREEN << "[" << socket_front->ft_get_socket_fd() << "] " 
-					<< FG_LGREEN << "password pass" << NO_COLOR << std::endl;
-					socket_front->ft_increase_level();
-				}
-			}
-			else
-			{
-				std::cout 
-				<< FG_LGREEN << "[" << socket_front->ft_get_socket_fd() << "]"
-				<< NO_COLOR << " : " << buf;
-
-				int				socket_send_loop;
-
-				socket_send_loop = this->_socket.size() - 1;
-				/**
-				 *  buff 에 발신자 아이디 추가 하기
-				 * */
-				while(socket_send_loop--)
-				{
-					this->_socket.pop();
-					this->_socket.push(socket_front);
-					socket_front = this->_socket.front();
-					if (socket_front->ft_get_socket_level() > 0)
-						send(socket_front->ft_get_socket_fd(), &buf, len + 1, 0);
-				}
-			}
+			std::cout << "test POLLERR " << std::endl;
 		}
-		this->_socket.pop();
-		this->_socket.push(socket_front);
+		else if ((revents & POLLRDNORM ))
+		{
+			this->ft_pollin(socket_front);
+		}
+		else
+		{
+			this->_socket.pop();
+			this->_socket.push(socket_front);
+		}
 	}
 }
+
+
+
+
+
+void	Server::ft_pollin(Socket *socket_front)
+{
+	int		fd;
+	char	buf[4096 + 1];
+	ssize_t len;
+	int		socket_send_loop;
+
+	fd = socket_front->ft_get_socket_fd();
+	len = recv(fd, &buf, 4096, 0);
+	if (len < 0)
+		throw Error("recv() failed"); 
+	if (len == 0)
+	{
+		std::cout << "test Connection closed" << std::endl;
+		this->_socket.pop();
+		delete socket_front;
+		return ;
+	}
+	buf[len] = '\0';
+	if (len > 0 && buf[len - 1] == '\n')
+		buf[--len] = '\0';
+	
+	if (len == 1 && buf[0] == '\n')
+	{
+		this->_socket.pop();
+		delete socket_front;
+		return ;
+	}
+	else if (socket_front->ft_get_socket_level() == 1) // 페스워드 체킹
+		this->ft_password_check(socket_front, this->_password.compare(buf));
+	else if (socket_front->ft_get_socket_level() == 2) // 유저이름 적기
+		this->ft_user_all_add(socket_front, std::string(buf));
+	else if (socket_front->ft_get_socket_level() == 3) // 닉네임 적기
+		this->ft_user_set_nick_name(socket_front, std::string(buf));
+	else
+	{
+		std::cout 
+		<< FG_LGREEN << "[" << fd << "]" << NO_COLOR << " : " << buf;
+		socket_send_loop = this->_socket.size() - 1;
+		/**
+		 *  buff 에 발신자 아이디 추가 하기
+		 * */
+		while(socket_send_loop--)
+		{
+			this->_socket.pop();
+			this->_socket.push(socket_front);
+			socket_front = this->_socket.front();
+			if (socket_front->ft_get_socket_level() > 0)
+				send(socket_front->ft_get_socket_fd(), &buf, len + 1, 0);
+		}
+	}
+}
+
+bool	Server::ft_password_check(Socket *socket_front, int check)
+{
+	int		fd;
+
+	fd = socket_front->ft_get_socket_fd();
+	if (check)
+	{
+		std::cout 
+		<< FG_LGREEN << "[" << fd << "] "
+		<< FG_RED << std::left << std::setw(15) <<  "[ ERROR ]" << "not password matching!! \n"
+		<< NO_COLOR << std::endl;
+		socket_front->ft_guide_send();
+	}
+	else
+	{
+		std::cout 
+		<< FG_LGREEN << "[" << fd << "] " << FG_LGREEN << "password pass"
+		<< NO_COLOR << std::endl;
+		socket_front->ft_increase_level();
+		socket_front->ft_guide_send();
+	}
+	return (!check);
+}
+
+
+
+bool	Server::ft_user_all_add(Socket *socket_front, std::string user_name)
+{
+	this->ft_append_user(new User(socket_front->ft_get_socket_fd(), user_name));
+	socket_front->ft_increase_level();
+	socket_front->ft_guide_send();
+}
+
+
+
+bool	Server::ft_user_set_nick_name(Socket *socket_front, std::string nick_name)
+{
+	this->ft_get_user(socket_front->ft_get_socket_fd())->ft_set_nick_name(nick_name);
+	socket_front->ft_increase_level();
+	socket_front->ft_guide_send();
+}
+
+
+
 
 void	Server::ft_server_input()
 {
