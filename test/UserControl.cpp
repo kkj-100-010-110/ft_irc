@@ -6,6 +6,8 @@
 
 UserControl::UserControl()
 {
+	this->_fd_map = new std::map<const int, User *>;
+	this->_name_map = new std::map<const std::string, int>;
 	std::cout << std::setw(15) << "[UserControl] " << "create!!" << std::endl;
 }
 

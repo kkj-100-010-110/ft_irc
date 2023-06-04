@@ -2,9 +2,9 @@
 # define CHANNEL_HPP
 
 #include "User.hpp"
-#include "UserAll.hpp"
+#include "UserControl.hpp"
 
-class Channel: public UserAll
+class Channel: public UserControl
 {
 
 private:

@@ -94,7 +94,11 @@ void	Server::ft_server_check_socket_fd()
 		// 끊어 졋는지 확인 코드가 필요 지금 꺼져있는 fd close 필요
 		socket_front = this->_socket.front();
 		revents = socket_front->ft_poll();
-		if (revents & POLLIN )
+		if (revents & POLLERR)
+		{
+			std::cout << "test POLLERR " << std::endl;
+		}
+		else if ((revents & POLLRDNORM ))
 		{
 			this->ft_pollin(socket_front);
 		}
@@ -129,6 +133,8 @@ void	Server::ft_pollin(Socket *socket_front)
 		return ;
 	}
 	buf[len] = '\0';
+	if (len > 0 && buf[len - 1] == '\n')
+		buf[--len] = '\0';
 	
 	if (len == 1 && buf[0] == '\n')
 	{
@@ -172,6 +178,7 @@ bool	Server::ft_password_check(Socket *socket_front, int check)
 		<< FG_LGREEN << "[" << fd << "] "
 		<< FG_RED << std::left << std::setw(15) <<  "[ ERROR ]" << "not password matching!! \n"
 		<< NO_COLOR << std::endl;
+		socket_front->ft_guide_send();
 	}
 	else
 	{
@@ -179,6 +186,7 @@ bool	Server::ft_password_check(Socket *socket_front, int check)
 		<< FG_LGREEN << "[" << fd << "] " << FG_LGREEN << "password pass"
 		<< NO_COLOR << std::endl;
 		socket_front->ft_increase_level();
+		socket_front->ft_guide_send();
 	}
 	return (!check);
 }
@@ -188,18 +196,18 @@ bool	Server::ft_password_check(Socket *socket_front, int check)
 bool	Server::ft_user_all_add(Socket *socket_front, std::string user_name)
 {
 	this->ft_append_user(new User(socket_front->ft_get_socket_fd(), user_name));
+	socket_front->ft_increase_level();
+	socket_front->ft_guide_send();
 }
 
 
 
-bool	Server::ft_user_set_nick_name(Socket *socket_front, std::string user_name)
+bool	Server::ft_user_set_nick_name(Socket *socket_front, std::string nick_name)
 {
-	
+	this->ft_get_user(socket_front->ft_get_socket_fd())->ft_set_nick_name(nick_name);
+	socket_front->ft_increase_level();
+	socket_front->ft_guide_send();
 }
-
-
-
-
 
 
 

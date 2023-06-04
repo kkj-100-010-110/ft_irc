@@ -163,6 +163,7 @@ Socket	*Socket::ft_accept()
 		client = new Socket(socket_fd);
 		// client->_ip4addr = ip4addr;
 		client->_level++;
+		client->ft_guide_send();
 		return client;
 	}
 	return (NULL);
@@ -188,7 +189,36 @@ int	Socket::ft_poll()
 	pfd.events = POLLSTANDARD;
 	if (poll(&pfd, 1, 0) == -1 && pfd.revents & POLLERR)
 		throw Error("poll POLLERR");
-	std::cout << "pfd.revents : " << pfd.revents << std::endl;
-	std::cout << "pfd.events : " << pfd.events << std::endl;
+	if (pfd.revents)
+	{
+		std::cout << "fd : " << pfd.fd << std::endl;
+		std::cout << "pfd.revents : " << pfd.revents << std::endl;
+		std::cout << "pfd.events : " << pfd.events << std::endl;
+	}
 	return (pfd.revents);
+}
+
+void	Socket::ft_guide_send()
+{
+	switch (this->_level)
+	{
+	case 1:
+		/* code */
+		send(this->_socket_fd, "password 입력 : \n\0", 21, 0);
+		break;
+	case 2:
+		/* code */
+		send(this->_socket_fd, "user_name 입력 : \n\0", 22, 0);
+		break;
+	case 3:
+		/* code */
+		send(this->_socket_fd, "nick_name 입력 : \n\0", 22, 0);
+		break;
+	case 4:
+		/* code */
+		send(this->_socket_fd, "channel에 접속하였습니다 : \n\0", 38, 0);
+		break;
+	default:
+		break;
+	}
 }

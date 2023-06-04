@@ -42,6 +42,8 @@ public:
 	int		ft_increase_level();
 	Socket	*ft_accept();
 	void	ft_listen(int backlog);
+
+	void	ft_guide_send();
 };
 
 #endif
