@@ -132,8 +132,6 @@ void	Server::ft_pollin(Socket *socket_front)
 		return ;
 	}
 	buf[len] = '\0';
-	if (len > 0 && buf[len - 1] == '\n')
-		buf[--len] = '\0';
 	
 	if (len == 1 && buf[0] == '\n')
 	{
@@ -141,33 +139,46 @@ void	Server::ft_pollin(Socket *socket_front)
 		delete socket_front;
 		return ;
 	}
-	else if (socket_front->ft_get_socket_level() == 1) // 페스워드 체킹
-		this->ft_password_check(socket_front, this->_password.compare(buf));
-	else if (socket_front->ft_get_socket_level() == 2) // 유저이름 적기
-		this->ft_user_all_add(socket_front, std::string(buf));
-	else if (socket_front->ft_get_socket_level() == 3) // 닉네임 적기
-		this->ft_user_set_nick_name(socket_front, std::string(buf));
-	else
+	switch (socket_front->ft_get_socket_level())
 	{
-
-
-		
-		std::cout 
-		<< FG_LGREEN << "[" << fd << "]" << NO_COLOR << " : " << buf;
-		socket_send_loop = this->_socket.size() - 1;
+	case 1:
+	{
+		if (len > 0 && buf[len - 1] == '\n')
+			buf[--len] = '\0';
+		this->ft_password_check(socket_front, this->_password.compare(buf));
+		break;
+	}
+	case 2:
+	{
+		if (len > 0 && buf[len - 1] == '\n')
+			buf[--len] = '\0';
+		this->ft_user_all_add(socket_front, std::string(buf));
+		break;
+	}
+	case 3:
+	{
+		if (len > 0 && buf[len - 1] == '\n')
+			buf[--len] = '\0';
+		this->ft_user_set_nick_name(socket_front, std::string(buf));
+		break;
+	}
+	default:
+	{
+		User *front_user = this->ft_get_user(socket_front->ft_get_socket_fd());
+		Channel *front_channel = this->_channel_list.at(front_user->ft_get_channel_name());
 		/**
-		 *  buff 에 발신자 아이디 추가 하기
-		 * */
-		while(socket_send_loop--)
-		{
-			this->_socket.pop();
-			this->_socket.push(socket_front);
-			socket_front = this->_socket.front();
-			if (socket_front->ft_get_socket_level() > 0)
-				send(socket_front->ft_get_socket_fd(), &buf, len + 1, 0);
-		}
+		 * 명령어 체크
+		*/
+		std::cout << FG_LGREEN << "[" << fd << "]" << NO_COLOR << " : " << buf;
+		if (buf[0] == '/')
+			front_channel->ft_send_me("option test", front_user->ft_get_user_name());
+		else
+			front_channel->ft_send_all((std::string)buf, front_user->ft_get_user_name());
+		break;
+	}
 	}
 }
+
 
 bool	Server::ft_password_check(Socket *socket_front, int check)
 {
@@ -205,7 +216,7 @@ bool	Server::ft_user_set_nick_name(Socket *socket_front, std::string nick_name)
 {
 	this->ft_get_user(socket_front->ft_get_socket_fd())->ft_set_nick_name(nick_name);
 	socket_front->ft_increase_level();
-	this->_channel_list.at("defualt");
+	this->_channel_list.at("defualt")->ft_channel_join_user(this->ft_get_user(socket_front->ft_get_socket_fd()));
 	socket_front->ft_guide_send();
 	return (1);
 }
