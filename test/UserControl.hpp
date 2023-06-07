@@ -26,6 +26,7 @@ public:
 
 	User	*ft_get_user(const int &fd);
 	User	*ft_get_user(const std::string &user_name);
+	UserControl	&ft_get_user_control_class() { return (*this); }
 
 };
 

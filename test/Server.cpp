@@ -1,5 +1,7 @@
 #include <iostream>
 #include <iomanip>
+#include <utility> // pair
+
 #include <sys/socket.h>
 
 #include <netdb.h>
@@ -70,6 +72,7 @@ void Server::ft_server_on()
 {
 	Socket	*accept_socket;
 	this->_server->ft_listen(20); // throw listen error
+	this->_channel_list.insert(std::pair<std::string, Channel *>("defualt", new Channel("defualt", this->ft_get_user_control_class())));
 
 	while (this->_socket.size() < 5)
 	{
@@ -110,10 +113,6 @@ void	Server::ft_server_check_socket_fd()
 	}
 }
 
-
-
-
-
 void	Server::ft_pollin(Socket *socket_front)
 {
 	int		fd;
@@ -150,6 +149,9 @@ void	Server::ft_pollin(Socket *socket_front)
 		this->ft_user_set_nick_name(socket_front, std::string(buf));
 	else
 	{
+
+
+		
 		std::cout 
 		<< FG_LGREEN << "[" << fd << "]" << NO_COLOR << " : " << buf;
 		socket_send_loop = this->_socket.size() - 1;
@@ -191,26 +193,22 @@ bool	Server::ft_password_check(Socket *socket_front, int check)
 	return (!check);
 }
 
-
-
 bool	Server::ft_user_all_add(Socket *socket_front, std::string user_name)
 {
 	this->ft_append_user(new User(socket_front->ft_get_socket_fd(), user_name));
 	socket_front->ft_increase_level();
 	socket_front->ft_guide_send();
+	return (1);
 }
-
-
 
 bool	Server::ft_user_set_nick_name(Socket *socket_front, std::string nick_name)
 {
 	this->ft_get_user(socket_front->ft_get_socket_fd())->ft_set_nick_name(nick_name);
 	socket_front->ft_increase_level();
+	this->_channel_list.at("defualt");
 	socket_front->ft_guide_send();
+	return (1);
 }
-
-
-
 
 void	Server::ft_server_input()
 {
