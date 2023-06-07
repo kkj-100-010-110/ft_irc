@@ -19,12 +19,16 @@ UserControl::UserControl(const UserControl& ref)
 
 UserControl::~UserControl()
 {
+	/**
+	 * 릭 삭제 필요
+	*/
 	std::cout << std::setw(15) << "[UserControl] " << "delete!!" << std::endl;
 }
 
 UserControl&	UserControl::operator=(const UserControl& ref)
 {
-	*this=ref;
+	this->_fd_map = ref._fd_map;
+	this->_name_map = ref._name_map;
 	std::cout << std::setw(15) << "[UserControl] " << "operator=!!" << std::endl;
 	return (*this);
 }

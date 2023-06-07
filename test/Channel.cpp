@@ -8,10 +8,10 @@ Channel::Channel()
     std::cout << std::setw(15) << "[Channel] " << "create!!" << std::endl;
 }
 
-Channel::Channel(const Channel& ref)
+Channel::Channel(std::string channel_name, UserControl &user_control):
+	_channel_name(channel_name), UserControl(user_control)
 {
-    *this=ref;
-    std::cout << std::setw(15) << "[Channel] " << "copy!!" << std::endl;
+    std::cout << std::setw(15) << "[Channel] " << "create!!" << std::endl;
 }
 
 Channel::~Channel()

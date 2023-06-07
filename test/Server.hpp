@@ -4,9 +4,11 @@
 #include <iostream>
 #include <string>
 #include <queue>
+#include <map>
 
 #include "Socket.hpp"
 #include "Error.hpp"
+#include "Channel.hpp"
 #include "UserControl.hpp"
 
 class Server: public UserControl
@@ -19,6 +21,7 @@ private:
 
 	Socket	*_server;
 	std::queue<Socket *> _socket;
+	std::map<std::string, Channel *> _channel_list;
 
 public:
 	Server();

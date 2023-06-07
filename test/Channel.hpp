@@ -8,12 +8,14 @@ class Channel: public UserControl
 {
 
 private:
+    Channel();
+    Channel(const Channel& ref) { };
     /* data */
-    User    *User_list;
+    std::string     _channel_name;
+    User  			 *_user_list;
 
 public:
-    Channel();
-    Channel(const Channel& ref);
+    Channel(std::string channel_name, UserControl &user_control);
     ~Channel();
 
     Channel&	operator=(const Channel& ref);
