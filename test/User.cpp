@@ -54,3 +54,8 @@ void    User::ft_set_nick_name(std::string nick_name)
 {
     this->_nick_name = nick_name;
 }
+
+void    User::ft_set_channel_name(std::string channel_name)
+{
+    this->_channel_name = channel_name;
+}

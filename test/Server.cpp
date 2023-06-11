@@ -132,7 +132,9 @@ void	Server::ft_pollin(Socket *socket_front)
 		return ;
 	}
 	buf[len] = '\0';
-	
+	if (len > 0 && buf[len - 1] == '\n')
+		buf[--len] = '\0';
+
 	if (len == 1 && buf[0] == '\n')
 	{
 		this->_socket.pop();
@@ -143,22 +145,16 @@ void	Server::ft_pollin(Socket *socket_front)
 	{
 	case 1:
 	{
-		if (len > 0 && buf[len - 1] == '\n')
-			buf[--len] = '\0';
 		this->ft_password_check(socket_front, this->_password.compare(buf));
 		break;
 	}
 	case 2:
 	{
-		if (len > 0 && buf[len - 1] == '\n')
-			buf[--len] = '\0';
 		this->ft_user_all_add(socket_front, std::string(buf));
 		break;
 	}
 	case 3:
 	{
-		if (len > 0 && buf[len - 1] == '\n')
-			buf[--len] = '\0';
 		this->ft_user_set_nick_name(socket_front, std::string(buf));
 		break;
 	}
@@ -169,6 +165,15 @@ void	Server::ft_pollin(Socket *socket_front)
 		/**
 		 * 명령어 체크
 		*/
+		//if (channel_change )
+		// ft_channel_shift();
+		// if (channel_leave )
+		// ft_channel_leave();
+		// if (channel_list)
+		// ft_channel_list;
+		// if (channel_kick)
+		// ft_channel_kick
+
 		std::cout << FG_LGREEN << "[" << fd << "]" << NO_COLOR << " : " << buf;
 		if (buf[0] == '/')
 			front_channel->ft_send_me("option test", front_user->ft_get_user_name());
@@ -221,6 +226,42 @@ bool	Server::ft_user_set_nick_name(Socket *socket_front, std::string nick_name)
 	return (1);
 }
 
+bool	Server::ft_channel_shift(User *front_user, std::string channel_name)
+{
+	Channel *channel = this->_channel_list.at(channel_name);
+	if (!channel)
+		return (false);
+	this->ft_channel_leave(front_user);
+	channel->ft_channel_join_user(front_user);
+	return (true);
+}
+
+bool	Server::ft_channel_leave(User *front_user)
+{
+	Channel *channel = this->_channel_list.at(front_user->ft_get_channel_name());
+
+	channel->ft_channel_leave_user(front_user);
+}
+
+
+std::string	Server::ft_channel_list()
+{
+	std::string	channel_list = "";
+	
+	std::map<std::string, Channel *>::iterator it = this->_channel_list.begin();
+
+	while (it != this->_channel_list.end())
+		channel_list += (*it).first;
+	return (channel_list);
+}
+
+bool	Server::ft_channel_ben(User *user)
+{
+	return (this->_channel_list.at(user->ft_get_channel_name())->ft_channel_ben_user(user));
+}
+
+
+
 void	Server::ft_server_input()
 {
 	std::string	buf;
@@ -236,6 +277,9 @@ void	Server::ft_server_input()
 	}
 
 }
+
+
+
 
 int main(int argc, char const *argv[])
 {

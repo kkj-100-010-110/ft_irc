@@ -30,9 +30,13 @@ Channel&	Channel::operator=(const Channel& ref)
     return (*this);
 }
 
-void	Channel::ft_channel_join_user(User *user)
+bool	Channel::ft_channel_join_user(User *user)
 {
+	if (this->_ben_list.at(user->ft_get_user_name()))
+		return (false);
+	user->ft_set_channel_name(this->_channel_name);
 	this->_user_list.insert( std::pair<std::string, User *>(user->ft_get_user_name(), user));
+	return (true);
 }
 
 
@@ -40,7 +44,16 @@ void	Channel::ft_channel_leave_user(User *user)
 {
 	std::map<std::string, User *>::iterator it = this->_user_list.find(user->ft_get_user_name());
 	if (it != this->_user_list.end())
+	{
 		this->_user_list.erase(user->ft_get_user_name());
+		user->ft_set_channel_name("defualt");
+	}
+}
+
+bool	Channel::ft_channel_ben_user(User *user)
+{
+	if (!this->_ben_list.at(user->ft_get_user_name()))
+		this->_ben_list.insert(user->ft_get_user_name(), user);
 }
 
 

@@ -33,6 +33,7 @@ public:
     const std::string &ft_get_nick_name();
     const std::string &ft_get_channel_name();
     void    ft_set_nick_name(std::string nick_name);
+    void    ft_set_channel_name(std::string channel_name);
 };
 
 #endif

@@ -8,7 +8,7 @@
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/Users/kyoulee/ft_irc/test/server",
+            "program": "/Users/adm/ft_irc/test/server",
             "args": ["1234", "123"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
