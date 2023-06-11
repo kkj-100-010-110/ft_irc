@@ -39,6 +39,10 @@ public:
 	bool	ft_password_check(Socket *socket_front, int check);
 	bool	ft_user_all_add(Socket *socket_front, std::string user_name);
 	bool	ft_user_set_nick_name(Socket *socket_front, std::string user_name);
+	bool	ft_channel_shift(User *front_user, std::string channel_name);
+	bool	ft_channel_leave(User *front_user);
+	bool	ft_channel_ben(User *front_user);
+	std::string	ft_channel_list();
 };
 
 #endif
