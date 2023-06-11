@@ -16,15 +16,17 @@
 #include <sys/stat.h>
 
 #include "Color.hpp"
+#include "Receive.hpp"
+
 
 Server::Server()
 {
 	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Server] " << NO_COLOR
-		<< FG_CYAN << " create!!" << std::endl;
+			  << FG_CYAN << " create!!" << std::endl;
 }
 
 Server::Server(std::string port, std::string password)
-	:_IP("127.0.0.1"), _port(port), _password(password)
+	: _IP("127.0.0.1"), _port(port), _password(password)
 {
 	struct addrinfo hints, *info;
 	memset(&hints, 0, sizeof hints);
@@ -41,20 +43,24 @@ Server::Server(std::string port, std::string password)
 	*(in_port_t *)hints.ai_addr->sa_data = htons(std::atoi(this->_port.c_str()));
 	hints.ai_addr->sa_data[2] = htonl(INADDR_ANY);
 
-	try { 
+	try
+	{
 		this->_server = new Socket(NULL, this->_port.c_str(), hints);
-		}
-	catch ( ... ){ throw Error(" socket error"); }
+	}
+	catch (...)
+	{
+		throw Error(" socket error");
+	}
 
-	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Server] " 
-		<< FG_LYELLOW << CL_UDLINE << "<< port : " << this->_port << " >>" << NO_COLOR
-		<< FG_CYAN << " create!!" << NO_COLOR << std::endl;
+	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Server] "
+			  << FG_LYELLOW << CL_UDLINE << "<< port : " << this->_port << " >>" << NO_COLOR
+			  << FG_CYAN << " create!!" << NO_COLOR << std::endl;
 }
 
 
 Server::~Server()
 {
-	Socket	*socket_del;
+	Socket *socket_del;
 
 	while (!this->_socket.empty())
 	{
@@ -63,14 +69,14 @@ Server::~Server()
 		delete socket_del;
 	}
 	delete this->_server;
-	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Server] " 
-		<< FG_LYELLOW << CL_UDLINE << "<< port : " << this->_port << " >>" << NO_COLOR
-		<< FG_LRED << " delete!!" << NO_COLOR << std::endl;
+	std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Server] "
+			  << FG_LYELLOW << CL_UDLINE << "<< port : " << this->_port << " >>" << NO_COLOR
+			  << FG_LRED << " delete!!" << NO_COLOR << std::endl;
 }
 
 void Server::ft_server_on()
 {
-	Socket	*accept_socket;
+	Socket *accept_socket;
 	this->_server->ft_listen(20); // throw listen error
 	this->_channel_list.insert(std::pair<std::string, Channel *>("defualt", new Channel("defualt", this->ft_get_user_control_class())));
 
@@ -85,14 +91,14 @@ void Server::ft_server_on()
 	}
 }
 
-void	Server::ft_server_check_socket_fd()
+void Server::ft_server_check_socket_fd()
 {
-	int				revents;
-	int				socket_size;
-	Socket			*socket_front;
+	int revents;
+	int socket_size;
+	Socket *socket_front;
 
 	socket_size = this->_socket.size();
-	while(socket_size--)
+	while (socket_size--)
 	{
 		// 끊어 졋는지 확인 코드가 필요 지금 꺼져있는 fd close 필요
 		socket_front = this->_socket.front();
@@ -101,7 +107,7 @@ void	Server::ft_server_check_socket_fd()
 		{
 			std::cout << "test POLLERR " << std::endl;
 		}
-		else if ((revents & POLLRDNORM ))
+		else if ((revents & POLLRDNORM))
 		{
 			this->ft_pollin(socket_front);
 		}
@@ -113,23 +119,23 @@ void	Server::ft_server_check_socket_fd()
 	}
 }
 
-void	Server::ft_pollin(Socket *socket_front)
+void Server::ft_pollin(Socket *socket_front)
 {
-	int		fd;
-	char	buf[4096 + 1];
+	int fd;
+	char buf[4096 + 1];
 	ssize_t len;
-	int		socket_send_loop;
+	int socket_send_loop;
 
 	fd = socket_front->ft_get_socket_fd();
 	len = recv(fd, &buf, 4096, 0);
 	if (len < 0)
-		throw Error("recv() failed"); 
+		throw Error("recv() failed");
 	if (len == 0)
 	{
 		std::cout << "test Connection closed" << std::endl;
 		this->_socket.pop();
 		delete socket_front;
-		return ;
+		return;
 	}
 	buf[len] = '\0';
 	if (len > 0 && buf[len - 1] == '\n')
@@ -139,8 +145,9 @@ void	Server::ft_pollin(Socket *socket_front)
 	{
 		this->_socket.pop();
 		delete socket_front;
-		return ;
+		return;
 	}
+	
 	switch (socket_front->ft_get_socket_level())
 	{
 	case 1:
@@ -161,55 +168,56 @@ void	Server::ft_pollin(Socket *socket_front)
 	default:
 	{
 		User *front_user = this->ft_get_user(socket_front->ft_get_socket_fd());
-		Channel *front_channel = this->_channel_list.at(front_user->ft_get_channel_name());
+
+		front_user->ft_receive_msg((std::string)buf, front_user, this->_channel_list);
 		/**
 		 * 명령어 체크
-		*/
-		//if (channel_change )
-		// ft_channel_shift();
-		// if (channel_leave )
-		// ft_channel_leave();
-		// if (channel_list)
-		// ft_channel_list;
-		// if (channel_kick)
-		// ft_channel_kick
+		 */
+		// if (channel_change )
+		//  ft_channel_shift();
+		//  if (channel_leave )
+		//  ft_channel_leave();
+		//  if (channel_list)
+		//  ft_channel_list;
+		//  if (channel_kick)
+		//  ft_channel_kick
 
-		std::cout << FG_LGREEN << "[" << fd << "]" << NO_COLOR << " : " << buf;
-		if (buf[0] == '/')
-			front_channel->ft_send_me("option test", front_user->ft_get_user_name());
-		else
-			front_channel->ft_send_all((std::string)buf, front_user->ft_get_user_name());
+		// std::cout << FG_LGREEN << "[" << fd << "]" << NO_COLOR << " : " << buf;
+		// if (buf[0] == '/')
+		// 	front_channel->ft_send_me("option test", front_user->ft_get_user_name());
+		// else
+		// 	front_channel->ft_send_all((std::string)buf, front_user->ft_get_user_name());
 		break;
 	}
 	}
 }
 
-
-bool	Server::ft_password_check(Socket *socket_front, int check)
+bool Server::ft_password_check(Socket *socket_front, int check)
 {
-	int		fd;
+	int fd;
 
 	fd = socket_front->ft_get_socket_fd();
 	if (check)
 	{
-		std::cout 
-		<< FG_LGREEN << "[" << fd << "] "
-		<< FG_RED << std::left << std::setw(15) <<  "[ ERROR ]" << "not password matching!! \n"
-		<< NO_COLOR << std::endl;
+		std::cout
+			<< FG_LGREEN << "[" << fd << "] "
+			<< FG_RED << std::left << std::setw(15) << "[ ERROR ]"
+			<< "not password matching!! \n"
+			<< NO_COLOR << std::endl;
 		socket_front->ft_guide_send();
 	}
 	else
 	{
-		std::cout 
-		<< FG_LGREEN << "[" << fd << "] " << FG_LGREEN << "password pass"
-		<< NO_COLOR << std::endl;
+		std::cout
+			<< FG_LGREEN << "[" << fd << "] " << FG_LGREEN << "password pass"
+			<< NO_COLOR << std::endl;
 		socket_front->ft_increase_level();
 		socket_front->ft_guide_send();
 	}
 	return (!check);
 }
 
-bool	Server::ft_user_all_add(Socket *socket_front, std::string user_name)
+bool Server::ft_user_all_add(Socket *socket_front, std::string user_name)
 {
 	this->ft_append_user(new User(socket_front->ft_get_socket_fd(), user_name));
 	socket_front->ft_increase_level();
@@ -217,7 +225,7 @@ bool	Server::ft_user_all_add(Socket *socket_front, std::string user_name)
 	return (1);
 }
 
-bool	Server::ft_user_set_nick_name(Socket *socket_front, std::string nick_name)
+bool Server::ft_user_set_nick_name(Socket *socket_front, std::string nick_name)
 {
 	this->ft_get_user(socket_front->ft_get_socket_fd())->ft_set_nick_name(nick_name);
 	socket_front->ft_increase_level();
@@ -226,7 +234,7 @@ bool	Server::ft_user_set_nick_name(Socket *socket_front, std::string nick_name)
 	return (1);
 }
 
-bool	Server::ft_channel_shift(User *front_user, std::string channel_name)
+bool Server::ft_channel_shift(User *front_user, std::string channel_name)
 {
 	Channel *channel = this->_channel_list.at(channel_name);
 	if (!channel)
@@ -236,35 +244,31 @@ bool	Server::ft_channel_shift(User *front_user, std::string channel_name)
 	return (true);
 }
 
-bool	Server::ft_channel_leave(User *front_user)
+bool Server::ft_channel_leave(User *front_user)
 {
 	Channel *channel = this->_channel_list.at(front_user->ft_get_channel_name());
 
 	channel->ft_channel_leave_user(front_user);
 }
 
-
-std::string	Server::ft_channel_list()
+std::string Server::ft_channel_list()
 {
-	std::string	channel_list = "";
-	
+	std::string channel_list = "";
+
 	std::map<std::string, Channel *>::iterator it = this->_channel_list.begin();
 
 	while (it != this->_channel_list.end())
+	{
 		channel_list += (*it).first;
+		channel_list += "\n";
+	}
+	
 	return (channel_list);
 }
 
-bool	Server::ft_channel_ben(User *user)
+void Server::ft_server_input()
 {
-	return (this->_channel_list.at(user->ft_get_channel_name())->ft_channel_ben_user(user));
-}
-
-
-
-void	Server::ft_server_input()
-{
-	std::string	buf;
+	std::string buf;
 	struct pollfd pfd = {.fd = 0, .events = POLLIN};
 	int ret_poll;
 
@@ -272,42 +276,44 @@ void	Server::ft_server_input()
 	if (ret_poll > 0)
 	{
 		std::getline(std::cin, buf);
-		std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Server] " 
-			<< FG_LCYAN << buf << NO_COLOR << std::endl;
+		std::cout << FG_LMAGENTA << std::left << std::setw(15) << "[Server] "
+				  << FG_LCYAN << buf << NO_COLOR << std::endl;
 	}
-
 }
-
-
-
 
 int main(int argc, char const *argv[])
 {
 	Server *server = NULL;
-	std::string	port_str, password_str;
+	std::string port_str, password_str;
 
 	if (argc != 3)
 	{
-		std::cerr << "\033[38;5;196m" << "[Error]" << NO_COLOR << " : "
-		<< FG_LYELLOW << "argc != 3 \n" << NO_COLOR
-		<< FG_CYAN << "[TIP] " << NO_COLOR <<  " ./server [port] [password] " << "\n";
+		std::cerr << "\033[38;5;196m"
+				  << "[Error]" << NO_COLOR << " : "
+				  << FG_LYELLOW << "argc != 3 \n"
+				  << NO_COLOR
+				  << FG_CYAN << "[TIP] " << NO_COLOR << " ./server [port] [password] "
+				  << "\n";
 		return (1);
 	}
 	port_str = argv[1];
 	password_str = argv[2];
 	if (port_str.find_first_not_of("0123456789") != std::string::npos) // std::all_of(str.begin(), str.end(), ::isdigit); // C++11
 	{
-		std::cerr << "\033[38;5;196m" << "[Error]" << NO_COLOR << " : "
-		<< FG_LYELLOW << "port is not digit" << NO_COLOR << '\n'
-		<< "port : [" << FG_LYELLOW << port_str << NO_COLOR << "]"<< "\n";
+		std::cerr << "\033[38;5;196m"
+				  << "[Error]" << NO_COLOR << " : "
+				  << FG_LYELLOW << "port is not digit" << NO_COLOR << '\n'
+				  << "port : [" << FG_LYELLOW << port_str << NO_COLOR << "]"
+				  << "\n";
 		return (2);
 	}
 
-	try {
+	try
+	{
 		server = new Server(port_str, password_str);
 		server->ft_server_on();
 	}
-	catch(const std::exception& e)
+	catch (const std::exception &e)
 	{
 		std::cerr << e.what() << '\n';
 	}
