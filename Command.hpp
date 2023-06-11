@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-class Command
+class Command : public Channel, public User
 {
 private:
 

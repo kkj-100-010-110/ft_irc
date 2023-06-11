@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-class Parse
+class Receive : public Command
 {
 	enum
 	{
