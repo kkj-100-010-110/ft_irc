@@ -1,11 +1,11 @@
 #ifndef USER_HPP
-# define USER_HPP
+#define USER_HPP
 
 #include <string>
 
 class User
 {
-	enum 
+	enum
 	{
 		OWNER,
 		OPERATOR,
@@ -22,11 +22,11 @@ private:
 	int					_auth;
 
 public:
-    User(int fd, std::string user_name);
-    User(const User& ref);
-    ~User();
+	User(int fd, std::string user_name);
+	User(const User &ref);
+	~User();
 
-    User&	operator=(const User& ref);
+	User &operator=(const User &ref);
 
     const int &ft_get_fd();
     const std::string &ft_get_user_name();

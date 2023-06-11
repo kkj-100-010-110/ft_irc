@@ -1,24 +1,25 @@
 #ifndef CHANNEL_HPP
-# define CHANNEL_HPP
+#define CHANNEL_HPP
 
 #include "User.hpp"
 #include "UserControl.hpp"
+#include "Receive.hpp"
 
-class Channel: public UserControl
+class Channel : public UserControl, public Receive
 {
 
 private:
     Channel();
-    Channel(const Channel& ref) { };
+    Channel(const Channel &ref){};
     /* data */
     std::string			_channel_name;
     std::map<std::string, User *>	_ben_list;
     std::map<std::string, User *>	_user_list;
 
+
 public:
     Channel(std::string channel_name, UserControl &user_control);
     ~Channel();
-
     Channel&	operator=(const Channel& ref);
 
 	bool	ft_channel_join_user(User *user);
