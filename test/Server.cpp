@@ -132,7 +132,7 @@ void	Server::ft_pollin(Socket *socket_front)
 		return ;
 	}
 	buf[len] = '\0';
-	
+	std::cout << buf << std::endl;
 	if (len == 1 && buf[0] == '\n')
 	{
 		this->_socket.pop();
